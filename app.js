@@ -119,3 +119,146 @@ function criarCard(contato) {
 
   return article;
 }
+
+// Busca / Filtro
+function filtrarContatos() {
+  const termo = inputBusca.value.toLowerCase().trim();
+  const filtrados = todosContatos.filter(
+    (c) =>
+      (c.nome    && c.nome.toLowerCase().includes(termo))  ||
+      (c.email   && c.email.toLowerCase().includes(termo)) ||
+      (c.cidade  && c.cidade.toLowerCase().includes(termo))||
+      (c.celular && c.celular.includes(termo))
+  );
+  exibirContatos(filtrados);
+}
+
+// Modo edição
+function carregarEdicao(contato) {
+  contatoEditandoId = contato.id;
+
+  // Preencher campos
+  document.getElementById("campo-nome").value     = contato.nome     || "";
+  document.getElementById("campo-celular").value  = contato.celular  || "";
+  document.getElementById("campo-email").value    = contato.email    || "";
+  document.getElementById("campo-foto").value     = contato.foto     || "";
+  document.getElementById("campo-endereco").value = contato.endereco || "";
+  document.getElementById("campo-cidade").value   = contato.cidade   || "";
+
+  // Atualizar avatar placeholder com foto do contato (se houver)
+  atualizarAvatarPreview();
+
+  // Atualizar textos do formulário
+  formTitulo.textContent    = "Editando Contato";
+  formSubtitulo.textContent = `Modificando: ${contato.nome}`;
+  btnSalvar.innerHTML = `
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+      <polyline points="20 6 9 17 4 12"/>
+    </svg>
+    Salvar Alterações
+  `;
+
+  // Mostrar botão de cancelar edição, destacar formulário
+  btnCancelarEd.classList.remove("hidden");
+  document.querySelector(".form-section").classList.add("modo-edicao");
+
+  // Scroll suave até o form
+  document.querySelector(".form-section").scrollIntoView({ behavior: "smooth", block: "start" });
+  setTimeout(() => document.getElementById("campo-nome").focus(), 400);
+}
+
+function cancelarEdicao() {
+  contatoEditandoId = null;
+  formEl.reset();
+  limparErros();
+  resetarAvatarPreview();
+
+  formTitulo.textContent    = "Novo Contato";
+  formSubtitulo.textContent = "Preencha os dados para adicionar um contato";
+  btnSalvar.innerHTML = `
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+      <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+    </svg>
+    Criar Contato
+  `;
+
+  btnCancelarEd.classList.add("hidden");
+  document.querySelector(".form-section").classList.remove("modo-edicao");
+}
+
+//Avatar placeholder dinâmico
+function atualizarAvatarPreview() {
+  const url = document.getElementById("campo-foto").value.trim();
+  const inner = avatarPlaceholder.querySelector(".avatar-placeholder-inner");
+
+  if (url && isUrl(url)) {
+    // Mostrar imagem real no placeholder
+    avatarPlaceholder.classList.add("tem-foto");
+    inner.innerHTML = `<img src="${escaparHtml(url)}" alt="Pré-visualização" onerror="this.parentElement.parentElement.classList.remove('tem-foto');resetarAvatarPreviewFallback()">`;
+  } else {
+    resetarAvatarPreview();
+  }
+}
+
+function resetarAvatarPreview() {
+  avatarPlaceholder.classList.remove("tem-foto");
+  const inner = avatarPlaceholder.querySelector(".avatar-placeholder-inner");
+  inner.innerHTML = `
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+      <circle cx="12" cy="8" r="4"/>
+      <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+    </svg>
+    <span>Foto</span>
+  `;
+}
+
+// exposto globalmente para o onerror inline
+window.resetarAvatarPreviewFallback = resetarAvatarPreview;
+
+// Submit
+async function handleSubmit(e) {
+  e.preventDefault();
+  limparErros();
+
+  const dados = {
+    nome:     document.getElementById("campo-nome").value.trim(),
+    celular:  document.getElementById("campo-celular").value.trim(),
+    email:    document.getElementById("campo-email").value.trim(),
+    foto:     document.getElementById("campo-foto").value.trim(),
+    endereco: document.getElementById("campo-endereco").value.trim(),
+    cidade:   document.getElementById("campo-cidade").value.trim(),
+  };
+
+  if (!validarFormulario(dados)) return;
+
+  btnSalvar.disabled = true;
+  const textoOriginal = btnSalvar.innerHTML;
+  btnSalvar.innerHTML = `<span class="spinner-btn"></span> Salvando…`;
+
+  try {
+    if (contatoEditandoId) {
+      await atualizarContato(contatoEditandoId, dados);
+      mostrarToast("Contato atualizado com sucesso!", "sucesso");
+      cancelarEdicao();
+    } else {
+      await criarContato(dados);
+      mostrarToast("Contato criado com sucesso!", "sucesso");
+      formEl.reset();
+      resetarAvatarPreview();
+    }
+    await renderizarContatos();
+  } catch (err) {
+    mostrarToast(err.message || "Ocorreu um erro. Tente novamente.", "erro");
+    btnSalvar.innerHTML = textoOriginal;
+  } finally {
+    btnSalvar.disabled = false;
+    if (!contatoEditandoId) {
+      btnSalvar.innerHTML = `
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        Criar Contato
+      `;
+    }
+  }
+}
