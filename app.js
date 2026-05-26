@@ -262,3 +262,114 @@ async function handleSubmit(e) {
     }
   }
 }
+
+//Deleção
+function confirmarDelecao(contato) {
+  const confirmEl = document.getElementById("confirm-dialog");
+  document.getElementById("confirm-nome").textContent = contato.nome;
+
+  confirmEl.classList.remove("hidden");
+  requestAnimationFrame(() => confirmEl.classList.add("visivel"));
+
+  const btnSim = document.getElementById("btn-confirmar-sim");
+  const btnNao = document.getElementById("btn-confirmar-nao");
+
+  const fecharConfirm = () => {
+    confirmEl.classList.remove("visivel");
+    setTimeout(() => confirmEl.classList.add("hidden"), 280);
+    // Remover listeners clonando
+    btnSim.replaceWith(btnSim.cloneNode(true));
+    btnNao.replaceWith(btnNao.cloneNode(true));
+  };
+
+  document.getElementById("btn-confirmar-sim").addEventListener("click", async () => {
+    fecharConfirm();
+    await executarDelecao(contato.id);
+  });
+  document.getElementById("btn-confirmar-nao").addEventListener("click", fecharConfirm);
+}
+
+async function executarDelecao(id) {
+  const card = listaEl.querySelector(`[data-id="${id}"]`);
+  if (card) card.classList.add("saindo");
+
+  // Se estava editando este contato, limpar o form
+  if (contatoEditandoId === id) cancelarEdicao();
+
+  try {
+    await deletarContato(id);
+    mostrarToast("Contato excluído.", "info");
+    await renderizarContatos();
+  } catch (err) {
+    mostrarToast(err.message || "Erro ao excluir contato.", "erro");
+    if (card) card.classList.remove("saindo");
+  }
+}
+
+// Validação 
+function validarFormulario(dados) {
+  let valido = true;
+
+  if (!dados.nome) {
+    mostrarErro("campo-nome", "Nome é obrigatório.");
+    valido = false;
+  }
+
+  if (dados.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(dados.email)) {
+    mostrarErro("campo-email", "E-mail inválido.");
+    valido = false;
+  }
+
+  if (dados.foto && !isUrl(dados.foto)) {
+    mostrarErro("campo-foto", "URL inválida.");
+    valido = false;
+  }
+
+  return valido;
+}
+
+function mostrarErro(campoId, mensagem) {
+  const campo = document.getElementById(campoId);
+  campo.classList.add("campo-erro");
+  const erro = document.createElement("span");
+  erro.className = "erro-msg";
+  erro.textContent = mensagem;
+  campo.parentElement.appendChild(erro);
+}
+
+function limparErros() {
+  document.querySelectorAll(".campo-erro").forEach((el) => el.classList.remove("campo-erro"));
+  document.querySelectorAll(".erro-msg").forEach((el) => el.remove());
+}
+
+// Toast 
+let toastTimer;
+function mostrarToast(mensagem, tipo = "info") {
+  clearTimeout(toastTimer);
+  toastEl.textContent = mensagem;
+  toastEl.className = `toast toast-${tipo} visivel`;
+  toastTimer = setTimeout(() => toastEl.classList.remove("visivel"), 3500);
+}
+
+// Loading 
+function mostrarLoading(ativo) {
+  loadingEl.classList.toggle("hidden", !ativo);
+  listaEl.classList.toggle("hidden", ativo);
+}
+
+//Utilitários 
+function gerarIniciais(nome = "") {
+  return nome.split(" ").slice(0, 2).map((p) => p[0]?.toUpperCase() || "").join("");
+}
+
+function escaparHtml(str = "") {
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function isUrl(str) {
+  try { new URL(str); return true; } catch { return false; }
+}
