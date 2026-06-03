@@ -8,175 +8,204 @@
 </head>
 <body>
 
+  <!-- Header -->
   <header class="header">
     <div class="header-inner">
 
       <a href="#" class="logo" aria-label="Contatos">
-        <div class="logo-icon">👤</div>
+        <div class="logo-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+        </div>
         <span class="logo-text">Conta<span>tos</span></span>
       </a>
 
       <div class="header-search">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
           <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
         </svg>
         <input
           type="search"
           id="busca"
-          placeholder="Buscar por nome, e-mail ou cidade…"
+          placeholder="Buscar contatos…"
           autocomplete="off"
           aria-label="Buscar contatos"
         />
       </div>
 
-      <button class="btn-primary" id="btn-novo-contato" aria-label="Adicionar novo contato">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
-          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-        </svg>
-        <span>Novo contato</span>
-      </button>
+      <div class="header-actions">
+        <span class="usuario-email" id="usuario-email"></span>
+        <button id="btn-sair" class="btn-sair" title="Sair">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+            <polyline points="16 17 21 12 16 7"/>
+            <line x1="21" y1="12" x2="9" y2="12"/>
+          </svg>
+          <span>Sair</span>
+        </button>
+      </div>
 
     </div>
   </header>
 
+  <!--  Main  -->
   <main>
 
-    <div class="status-bar">
-      <h2>Todos os contatos</h2>
-      <span id="contador">…</span>
+    <!--  Layout de duas colunas -->
+    <div class="layout">
+
+      <!-- Coluna esquerda: Formulário -->
+      <aside class="col-form" aria-label="Formulário de contato">
+
+        <div class="form-card">
+
+          <div class="form-card-header">
+            <h2 id="form-titulo">Novo Contato</h2>
+            <p class="form-subtitulo" id="form-subtitulo">Preencha os dados abaixo</p>
+          </div>
+
+          <!-- Avatar centralizado no topo do form -->
+          <div class="form-avatar-wrap">
+            <div class="form-avatar" id="form-avatar" aria-label="Foto do contato">
+              <div class="avatar-vazio" id="avatar-vazio">
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="8" r="4"/>
+                  <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+                </svg>
+              </div>
+              <img id="avatar-img" class="avatar-img hidden" alt="Foto do contato" />
+            </div>
+            <span class="avatar-label">Foto do contato</span>
+          </div>
+
+          <form id="form-contato" novalidate>
+
+            <!-- URL da Foto -->
+            <div class="campo-grupo">
+              <label for="campo-foto">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                URL da foto
+              </label>
+              <input type="url" id="campo-foto" name="foto" placeholder="https://site.com/foto.jpg" />
+            </div>
+
+            <!-- Nome -->
+            <div class="campo-grupo">
+              <label for="campo-nome">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                Nome <span class="required">*</span>
+              </label>
+              <input type="text" id="campo-nome" name="nome" placeholder="Ex: Maria Silva" autocomplete="name" required />
+            </div>
+
+            <!-- Celular -->
+            <div class="campo-grupo">
+              <label for="campo-celular">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+                Celular
+              </label>
+              <input type="tel" id="campo-celular" name="celular" placeholder="(11) 99999-9999" autocomplete="tel" />
+            </div>
+
+            <!-- E-mail -->
+            <div class="campo-grupo">
+              <label for="campo-email">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                E-mail
+              </label>
+              <input type="email" id="campo-email" name="email" placeholder="maria@email.com" autocomplete="email" />
+            </div>
+
+            <!-- Endereço -->
+            <div class="campo-grupo">
+              <label for="campo-endereco">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                Endereço
+              </label>
+              <input type="text" id="campo-endereco" name="endereco" placeholder="Rua A, 100" autocomplete="street-address" />
+            </div>
+
+            <!-- Cidade -->
+            <div class="campo-grupo">
+              <label for="campo-cidade">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                Cidade
+              </label>
+              <input type="text" id="campo-cidade" name="cidade" placeholder="São Paulo" autocomplete="address-level2" />
+            </div>
+
+            <!-- Ações centralizadas -->
+            <div class="form-acoes">
+              <button type="submit" id="btn-salvar">
+                <span id="btn-salvar-texto">Criar Contato</span>
+                <span class="btn-spinner hidden" id="btn-spinner"></span>
+              </button>
+              <button type="button" id="btn-cancelar-edicao" class="btn-cancelar hidden">
+                Cancelar
+              </button>
+            </div>
+
+          </form>
+        </div>
+      </aside>
+
+      <!-- Coluna direita: Lista -->
+      <section class="col-lista" aria-label="Lista de contatos">
+
+        <div class="lista-header">
+          <h2>Contatos</h2>
+          <span id="contador" class="badge">…</span>
+        </div>
+
+        <!-- Loading -->
+        <div id="loading" class="loading-state">
+          <div class="spinner"></div>
+          <span>Carregando…</span>
+        </div>
+
+        <!-- Grid -->
+        <div id="lista-contatos" class="hidden" role="list" aria-label="Lista de contatos"></div>
+
+        <!-- Empty -->
+        <div id="empty-state" class="empty-state hidden" role="status">
+          <div class="empty-icon">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" opacity="0.4">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+          </div>
+          <h3>Nenhum contato</h3>
+          <p>Use o formulário ao lado para adicionar o primeiro.</p>
+        </div>
+
+      </section>
     </div>
-
-    <div id="loading">
-      <div class="spinner"></div>
-      <span>Carregando contatos…</span>
-    </div>
-
-    <!-- Grid -->
-    <div id="lista-contatos" class="hidden" role="list" aria-label="Lista de contatos"></div>
-
-    <!-- Empty State -->
-    <div id="empty-state" class="hidden" role="status">
-      <div class="empty-icon">📋</div>
-      <h3>Nenhum contato encontrado</h3>
-      <p>Adicione seu primeiro contato clicando em "Novo contato".</p>
-    </div>
-
   </main>
 
-  <!--  Modal: Formulário -->
-  <div id="modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modal-titulo">
-    <div class="modal-box">
-
-      <div class="modal-header">
-        <h2 id="modal-titulo">Novo Contato</h2>
-        <button id="btn-fechar-modal" class="btn-icone" aria-label="Fechar">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-          </svg>
-        </button>
-      </div>
-
-      <form id="form-contato" class="modal-form" novalidate>
-
-        <!-- Nome (largura total) -->
-        <div class="campo-grupo">
-          <label for="campo-nome">Nome *</label>
-          <input
-            type="text"
-            id="campo-nome"
-            name="nome"
-            placeholder="Ex: Maria Silva"
-            autocomplete="name"
-            required
-          />
-        </div>
-
-        <!-- Celular + E-mail -->
-        <div class="form-row">
-          <div class="campo-grupo">
-            <label for="campo-celular">Celular</label>
-            <input
-              type="tel"
-              id="campo-celular"
-              name="celular"
-              placeholder="(11) 99999-9999"
-              autocomplete="tel"
-            />
-          </div>
-          <div class="campo-grupo">
-            <label for="campo-email">E-mail</label>
-            <input
-              type="email"
-              id="campo-email"
-              name="email"
-              placeholder="maria@email.com"
-              autocomplete="email"
-            />
-          </div>
-        </div>
-
-        <!-- Foto (URL) -->
-        <div class="campo-grupo">
-          <label for="campo-foto">URL da Foto</label>
-          <input
-            type="url"
-            id="campo-foto"
-            name="foto"
-            placeholder="https://exemplo.com/foto.jpg"
-          />
-        </div>
-
-        <!-- Endereço + Cidade -->
-        <div class="form-row">
-          <div class="campo-grupo">
-            <label for="campo-endereco">Endereço</label>
-            <input
-              type="text"
-              id="campo-endereco"
-              name="endereco"
-              placeholder="Rua A, 100"
-              autocomplete="street-address"
-            />
-          </div>
-          <div class="campo-grupo">
-            <label for="campo-cidade">Cidade</label>
-            <input
-              type="text"
-              id="campo-cidade"
-              name="cidade"
-              placeholder="São Paulo"
-              autocomplete="address-level2"
-            />
-          </div>
-        </div>
-
-        <div class="form-acoes">
-          <button type="button" id="btn-cancelar" class="btn-ghost">Cancelar</button>
-          <button type="submit" id="btn-salvar">Criar Contato</button>
-        </div>
-
-      </form>
-    </div>
-  </div>
-
-  <!-- Modal: Confirmação de exclusão  -->
-  <div id="confirm-dialog" class="confirm-overlay hidden" role="alertdialog" aria-modal="true" aria-labelledby="confirm-titulo">
+  <!--  Confirm Dialog  -->
+  <div id="confirm-dialog" class="confirm-overlay hidden" role="alertdialog" aria-modal="true">
     <div class="confirm-box">
-      <div class="confirm-icon">🗑️</div>
-      <h3 id="confirm-titulo">Excluir contato?</h3>
+      <div class="confirm-icon-wrap">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+      </div>
+      <h3>Excluir contato?</h3>
       <p>Tem certeza que deseja excluir <strong id="confirm-nome"></strong>? Esta ação não pode ser desfeita.</p>
       <div class="confirm-acoes">
-        <button id="btn-confirmar-nao" class="btn-ghost">Cancelar</button>
-        <button id="btn-confirmar-sim">Excluir</button>
+        <button id="btn-confirmar-nao" class="btn-ghost-sm">Cancelar</button>
+        <button id="btn-confirmar-sim" class="btn-danger">Excluir</button>
       </div>
     </div>
   </div>
 
-  <!-- Toast de notificação  -->
+  <!--  Toast -->
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-  <!-- Scripts -->
   <script type="module" src="app.js"></script>
-
 </body>
 </html>
