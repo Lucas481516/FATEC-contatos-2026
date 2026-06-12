@@ -1,54 +1,65 @@
-// app.js — Lógica principal da aplicação de contatos
 import {
-  listarContatos,
+  getContatos as listarContatos,
   criarContato,
   atualizarContato,
   deletarContato,
 } from "./contatos.js";
 
-// Estado global 
 let contatoEditandoId = null;
 let todosContatos = [];
+let fotoAtualDataUrl = "";
 
-// Seletores 
-const listaEl        = document.getElementById("lista-contatos");
-const formEl         = document.getElementById("form-contato");
-const formTitulo     = document.getElementById("form-titulo");
-const formSubtitulo  = document.getElementById("form-subtitulo");
-const btnSalvar      = document.getElementById("btn-salvar");
-const btnCancelarEd  = document.getElementById("btn-cancelar-edicao");
-const inputBusca     = document.getElementById("busca");
-const toastEl        = document.getElementById("toast");
-const contadorEl     = document.getElementById("contador");
-const loadingEl      = document.getElementById("loading");
-const emptyEl        = document.getElementById("empty-state");
-const avatarPlaceholder = document.querySelector(".avatar-placeholder");
+const loginScreen = document.getElementById("login-screen");
+const appScreen = document.getElementById("app-screen");
+const btnLogin = document.getElementById("btn-login");
+const listaEl = document.getElementById("lista-contatos");
+const formEl = document.getElementById("form-contato");
+const formTitulo = document.getElementById("form-titulo");
+const formSubtitulo = document.getElementById("form-subtitulo");
+const btnSalvar = document.getElementById("btn-salvar");
+const btnCancelarEd = document.getElementById("btn-cancelar-edicao");
+const inputBusca = document.getElementById("busca");
+const toastEl = document.getElementById("toast");
+const contadorEl = document.getElementById("contador");
+const loadingEl = document.getElementById("loading");
+const emptyEl = document.getElementById("empty-state");
+const campoFoto = document.getElementById("campo-foto");
+const formAvatar = document.getElementById("form-avatar");
+const avatarVazio = document.getElementById("avatar-vazio");
+const avatarImg = document.getElementById("avatar-img");
 
-// Inicialização 
-document.addEventListener("DOMContentLoaded", async () => {
-  await renderizarContatos();
-  configurarEventos();
-});
+document.addEventListener("DOMContentLoaded", configurarEventos);
 
 function configurarEventos() {
+  btnLogin.addEventListener("click", entrarNoApp);
+  document.getElementById("btn-sair").addEventListener("click", voltarParaLogin);
   formEl.addEventListener("submit", handleSubmit);
   btnCancelarEd.addEventListener("click", cancelarEdicao);
   inputBusca.addEventListener("input", filtrarContatos);
-  // Atualizar avatar ao digitar URL da foto
-  document.getElementById("campo-foto").addEventListener("input", atualizarAvatarPreview);
+  campoFoto.addEventListener("change", handleFotoSelecionada);
 }
 
-//Renderização 
+async function entrarNoApp() {
+  loginScreen.classList.add("hidden");
+  appScreen.classList.remove("hidden");
+  await renderizarContatos();
+}
+
+function voltarParaLogin() {
+  appScreen.classList.add("hidden");
+  loginScreen.classList.remove("hidden");
+}
+
 async function renderizarContatos() {
   mostrarLoading(true);
   try {
     todosContatos = await listarContatos();
     exibirContatos(todosContatos);
   } catch (err) {
-    mostrarToast("Erro ao carregar contatos. Verifique a conexão.", "erro");
+    mostrarToast("Erro ao carregar contatos. Verifique a conexao.", "erro");
     listaEl.innerHTML = "";
     emptyEl.classList.remove("hidden");
-    emptyEl.querySelector("p").textContent = "Não foi possível carregar os contatos.";
+    emptyEl.querySelector("p").textContent = "Nao foi possivel carregar os contatos.";
   } finally {
     mostrarLoading(false);
   }
@@ -61,9 +72,9 @@ function exibirContatos(contatos) {
     emptyEl.classList.remove("hidden");
   } else {
     emptyEl.classList.add("hidden");
-    contatos.forEach((c, i) => {
-      const card = criarCard(c);
-      card.style.animationDelay = `${i * 60}ms`;
+    contatos.forEach((contato, index) => {
+      const card = criarCard(contato);
+      card.style.animationDelay = `${index * 60}ms`;
       listaEl.appendChild(card);
     });
   }
@@ -77,30 +88,27 @@ function criarCard(contato) {
   article.dataset.id = contato.id;
 
   const iniciais = gerarIniciais(contato.nome);
-  const fotoHtml = contato.foto
+  const temFoto = Boolean(contato.foto);
+  const fotoHtml = temFoto
     ? `<img src="${escaparHtml(contato.foto)}" alt="${escaparHtml(contato.nome)}" class="card-foto" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
     : "";
 
   article.innerHTML = `
-    <div class="card-avatar">
-      ${fotoHtml}
-      <div class="card-iniciais" style="${contato.foto ? "display:none" : ""}">
-        ${iniciais}
+    <div class="card-top">
+      <div class="card-avatar">
+        ${fotoHtml}
+        <div class="card-iniciais" style="${temFoto ? "display:none" : ""}">
+          ${iniciais}
+        </div>
       </div>
-    </div>
-    <div class="card-info">
       <h3 class="card-nome">${escaparHtml(contato.nome)}</h3>
-      <p class="card-detalhe">
-        <span class="icon">📱</span>${escaparHtml(contato.celular || "—")}
-      </p>
-      <p class="card-detalhe">
-        <span class="icon">✉️</span>${escaparHtml(contato.email || "—")}
-      </p>
-      <p class="card-detalhe">
-        <span class="icon">📍</span>${escaparHtml(
-          [contato.endereco, contato.cidade].filter(Boolean).join(", ") || "—"
-        )}
-      </p>
+    </div>
+    <div class="card-detalhes">
+      <p class="card-detalhe"><span class="icon">Cel.</span>${escaparHtml(contato.celular || "-")}</p>
+      <p class="card-detalhe"><span class="icon">Mail</span>${escaparHtml(contato.email || "-")}</p>
+      <p class="card-detalhe"><span class="icon">Local</span>${escaparHtml(
+        [contato.endereco, contato.cidade].filter(Boolean).join(", ") || "-"
+      )}</p>
     </div>
     <div class="card-acoes">
       <button class="btn-editar" aria-label="Editar contato">
@@ -120,50 +128,42 @@ function criarCard(contato) {
   return article;
 }
 
-// Busca / Filtro
 function filtrarContatos() {
   const termo = inputBusca.value.toLowerCase().trim();
   const filtrados = todosContatos.filter(
-    (c) =>
-      (c.nome    && c.nome.toLowerCase().includes(termo))  ||
-      (c.email   && c.email.toLowerCase().includes(termo)) ||
-      (c.cidade  && c.cidade.toLowerCase().includes(termo))||
-      (c.celular && c.celular.includes(termo))
+    (contato) =>
+      (contato.nome && contato.nome.toLowerCase().includes(termo)) ||
+      (contato.email && contato.email.toLowerCase().includes(termo)) ||
+      (contato.cidade && contato.cidade.toLowerCase().includes(termo)) ||
+      (contato.celular && contato.celular.includes(termo))
   );
   exibirContatos(filtrados);
 }
 
-// Modo edição
 function carregarEdicao(contato) {
   contatoEditandoId = contato.id;
+  fotoAtualDataUrl = contato.foto || "";
 
-  // Preencher campos
-  document.getElementById("campo-nome").value     = contato.nome     || "";
-  document.getElementById("campo-celular").value  = contato.celular  || "";
-  document.getElementById("campo-email").value    = contato.email    || "";
-  document.getElementById("campo-foto").value     = contato.foto     || "";
+  document.getElementById("campo-nome").value = contato.nome || "";
+  document.getElementById("campo-celular").value = contato.celular || "";
+  document.getElementById("campo-email").value = contato.email || "";
   document.getElementById("campo-endereco").value = contato.endereco || "";
-  document.getElementById("campo-cidade").value   = contato.cidade   || "";
+  document.getElementById("campo-cidade").value = contato.cidade || "";
 
-  // Atualizar avatar placeholder com foto do contato (se houver)
   atualizarAvatarPreview();
 
-  // Atualizar textos do formulário
-  formTitulo.textContent    = "Editando Contato";
+  formTitulo.textContent = "Editando Contato";
   formSubtitulo.textContent = `Modificando: ${contato.nome}`;
   btnSalvar.innerHTML = `
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
       <polyline points="20 6 9 17 4 12"/>
     </svg>
-    Salvar Alterações
+    Salvar Alteracoes
   `;
 
-  // Mostrar botão de cancelar edição, destacar formulário
   btnCancelarEd.classList.remove("hidden");
-  document.querySelector(".form-section").classList.add("modo-edicao");
-
-  // Scroll suave até o form
-  document.querySelector(".form-section").scrollIntoView({ behavior: "smooth", block: "start" });
+  document.querySelector(".form-card").classList.add("modo-edicao");
+  document.querySelector(".form-card").scrollIntoView({ behavior: "smooth", block: "start" });
   setTimeout(() => document.getElementById("campo-nome").focus(), 400);
 }
 
@@ -173,8 +173,8 @@ function cancelarEdicao() {
   limparErros();
   resetarAvatarPreview();
 
-  formTitulo.textContent    = "Novo Contato";
-  formSubtitulo.textContent = "Preencha os dados para adicionar um contato";
+  formTitulo.textContent = "Novo Contato";
+  formSubtitulo.textContent = "Preencha os dados abaixo";
   btnSalvar.innerHTML = `
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
       <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
@@ -183,57 +183,71 @@ function cancelarEdicao() {
   `;
 
   btnCancelarEd.classList.add("hidden");
-  document.querySelector(".form-section").classList.remove("modo-edicao");
+  document.querySelector(".form-card").classList.remove("modo-edicao");
 }
 
-//Avatar placeholder dinâmico
-function atualizarAvatarPreview() {
-  const url = document.getElementById("campo-foto").value.trim();
-  const inner = avatarPlaceholder.querySelector(".avatar-placeholder-inner");
+function handleFotoSelecionada(event) {
+  const arquivo = event.target.files?.[0];
 
-  if (url && isUrl(url)) {
-    // Mostrar imagem real no placeholder
-    avatarPlaceholder.classList.add("tem-foto");
-    inner.innerHTML = `<img src="${escaparHtml(url)}" alt="Pré-visualização" onerror="this.parentElement.parentElement.classList.remove('tem-foto');resetarAvatarPreviewFallback()">`;
-  } else {
+  if (!arquivo) {
+    fotoAtualDataUrl = "";
     resetarAvatarPreview();
+    return;
   }
+
+  if (!arquivo.type.startsWith("image/")) {
+    mostrarToast("Selecione um arquivo de imagem.", "erro");
+    campoFoto.value = "";
+    return;
+  }
+
+  const leitor = new FileReader();
+  leitor.onload = () => {
+    fotoAtualDataUrl = String(leitor.result || "");
+    atualizarAvatarPreview();
+  };
+  leitor.readAsDataURL(arquivo);
+}
+
+function atualizarAvatarPreview() {
+  if (!fotoAtualDataUrl) {
+    resetarAvatarPreview();
+    return;
+  }
+
+  formAvatar.classList.add("tem-foto");
+  avatarImg.src = fotoAtualDataUrl;
+  avatarImg.classList.remove("hidden");
+  avatarVazio.classList.add("hidden");
 }
 
 function resetarAvatarPreview() {
-  avatarPlaceholder.classList.remove("tem-foto");
-  const inner = avatarPlaceholder.querySelector(".avatar-placeholder-inner");
-  inner.innerHTML = `
-    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-      <circle cx="12" cy="8" r="4"/>
-      <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
-    </svg>
-    <span>Foto</span>
-  `;
+  fotoAtualDataUrl = "";
+  campoFoto.value = "";
+  formAvatar.classList.remove("tem-foto");
+  avatarImg.removeAttribute("src");
+  avatarImg.classList.add("hidden");
+  avatarVazio.classList.remove("hidden");
 }
 
-// exposto globalmente para o onerror inline
-window.resetarAvatarPreviewFallback = resetarAvatarPreview;
-
-// Submit
-async function handleSubmit(e) {
-  e.preventDefault();
+async function handleSubmit(event) {
+  event.preventDefault();
   limparErros();
 
   const dados = {
-    nome:     document.getElementById("campo-nome").value.trim(),
-    celular:  document.getElementById("campo-celular").value.trim(),
-    email:    document.getElementById("campo-email").value.trim(),
-    foto:     document.getElementById("campo-foto").value.trim(),
+    nome: document.getElementById("campo-nome").value.trim(),
+    celular: document.getElementById("campo-celular").value.trim(),
+    email: document.getElementById("campo-email").value.trim(),
+    foto: fotoAtualDataUrl,
     endereco: document.getElementById("campo-endereco").value.trim(),
-    cidade:   document.getElementById("campo-cidade").value.trim(),
+    cidade: document.getElementById("campo-cidade").value.trim(),
   };
 
   if (!validarFormulario(dados)) return;
 
   btnSalvar.disabled = true;
   const textoOriginal = btnSalvar.innerHTML;
-  btnSalvar.innerHTML = `<span class="spinner-btn"></span> Salvando…`;
+  btnSalvar.innerHTML = `<span class="spinner-btn"></span> Salvando...`;
 
   try {
     if (contatoEditandoId) {
@@ -263,7 +277,6 @@ async function handleSubmit(e) {
   }
 }
 
-//Deleção
 function confirmarDelecao(contato) {
   const confirmEl = document.getElementById("confirm-dialog");
   document.getElementById("confirm-nome").textContent = contato.nome;
@@ -277,7 +290,6 @@ function confirmarDelecao(contato) {
   const fecharConfirm = () => {
     confirmEl.classList.remove("visivel");
     setTimeout(() => confirmEl.classList.add("hidden"), 280);
-    // Remover listeners clonando
     btnSim.replaceWith(btnSim.cloneNode(true));
     btnNao.replaceWith(btnNao.cloneNode(true));
   };
@@ -293,12 +305,11 @@ async function executarDelecao(id) {
   const card = listaEl.querySelector(`[data-id="${id}"]`);
   if (card) card.classList.add("saindo");
 
-  // Se estava editando este contato, limpar o form
   if (contatoEditandoId === id) cancelarEdicao();
 
   try {
     await deletarContato(id);
-    mostrarToast("Contato excluído.", "info");
+    mostrarToast("Contato excluido.", "info");
     await renderizarContatos();
   } catch (err) {
     mostrarToast(err.message || "Erro ao excluir contato.", "erro");
@@ -306,22 +317,16 @@ async function executarDelecao(id) {
   }
 }
 
-// Validação 
 function validarFormulario(dados) {
   let valido = true;
 
   if (!dados.nome) {
-    mostrarErro("campo-nome", "Nome é obrigatório.");
+    mostrarErro("campo-nome", "Nome e obrigatorio.");
     valido = false;
   }
 
   if (dados.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(dados.email)) {
-    mostrarErro("campo-email", "E-mail inválido.");
-    valido = false;
-  }
-
-  if (dados.foto && !isUrl(dados.foto)) {
-    mostrarErro("campo-foto", "URL inválida.");
+    mostrarErro("campo-email", "E-mail invalido.");
     valido = false;
   }
 
@@ -342,7 +347,6 @@ function limparErros() {
   document.querySelectorAll(".erro-msg").forEach((el) => el.remove());
 }
 
-// Toast 
 let toastTimer;
 function mostrarToast(mensagem, tipo = "info") {
   clearTimeout(toastTimer);
@@ -351,15 +355,17 @@ function mostrarToast(mensagem, tipo = "info") {
   toastTimer = setTimeout(() => toastEl.classList.remove("visivel"), 3500);
 }
 
-// Loading 
 function mostrarLoading(ativo) {
   loadingEl.classList.toggle("hidden", !ativo);
   listaEl.classList.toggle("hidden", ativo);
 }
 
-//Utilitários 
 function gerarIniciais(nome = "") {
-  return nome.split(" ").slice(0, 2).map((p) => p[0]?.toUpperCase() || "").join("");
+  return nome
+    .split(" ")
+    .slice(0, 2)
+    .map((parte) => parte[0]?.toUpperCase() || "")
+    .join("");
 }
 
 function escaparHtml(str = "") {
@@ -368,8 +374,4 @@ function escaparHtml(str = "") {
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
-}
-
-function isUrl(str) {
-  try { new URL(str); return true; } catch { return false; }
 }

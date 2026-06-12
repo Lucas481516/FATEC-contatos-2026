@@ -7,8 +7,37 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <section id="login-screen" class="login-screen" aria-label="Tela de login">
+    <div class="login-panel">
+      <div class="login-brand">
+        <div class="logo-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+        </div>
+        <span class="logo-text">Conta<span>tos</span></span>
+      </div>
+
+      <h1>Acessar contatos</h1>
+      <p>Entre para visualizar e cadastrar seus contatos.</p>
+
+      <div class="login-fields">
+        <label for="login-email">E-mail</label>
+        <input id="login-email" type="email" placeholder="aluno@fatec.sp.gov.br" autocomplete="email" />
+
+        <label for="login-senha">Senha</label>
+        <input id="login-senha" type="password" placeholder="Sua senha" autocomplete="current-password" />
+      </div>
+
+      <button id="btn-login" class="btn-login" type="button">Avançar</button>
+    </div>
+  </section>
 
   <!-- Header -->
+  <div id="app-screen" class="app-screen hidden">
   <header class="header">
     <div class="header-inner">
 
@@ -70,28 +99,21 @@
 
           <!-- Avatar centralizado no topo do form -->
           <div class="form-avatar-wrap">
-            <div class="form-avatar" id="form-avatar" aria-label="Foto do contato">
+            <label class="form-avatar upload-avatar" id="form-avatar" for="campo-foto" aria-label="Escolher foto do contato">
               <div class="avatar-vazio" id="avatar-vazio">
                 <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
                   <circle cx="12" cy="8" r="4"/>
                   <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
                 </svg>
+                <span>Upload</span>
               </div>
               <img id="avatar-img" class="avatar-img hidden" alt="Foto do contato" />
-            </div>
-            <span class="avatar-label">Foto do contato</span>
+            </label>
+            <span class="avatar-label">Adicionar foto</span>
+            <input type="file" id="campo-foto" name="foto" accept="image/*" class="foto-input" />
           </div>
 
           <form id="form-contato" novalidate>
-
-            <!-- URL da Foto -->
-            <div class="campo-grupo">
-              <label for="campo-foto">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-                URL da foto
-              </label>
-              <input type="url" id="campo-foto" name="foto" placeholder="https://site.com/foto.jpg" />
-            </div>
 
             <!-- Nome -->
             <div class="campo-grupo">
@@ -207,5 +229,6 @@
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
   <script type="module" src="app.js"></script>
+  </div>
 </body>
 </html>
